@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/hyperscrub-wordmark.png" alt="HyperScrub — Parallel PDF Redaction" width="640">
 </p>HyperScrub
-HyperScrub is a local command-line project for redacting sensitive information from large PDFs. It analyzes pages across multiple CPU cores, then applies the detected redactions in a single write pass.
+is a local command-line project for redacting sensitive information from large PDFs. It analyzes pages across multiple CPU cores, then applies the detected redactions in a single write pass.
 
 Status: Prototype. The portable release, bundled OCR, and commands below describe the planned first release.
 Architecture & core features
