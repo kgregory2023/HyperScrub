@@ -3,21 +3,46 @@
 </p>
 
 <p align="center">
-  <strong>Local, multicore redaction for large PDFs.</strong><br>
-  <em>Prototype · Portable release in development</em>
+  <strong>Configurable redaction for searchable PDF documents.</strong><br>
+  <em>Pre-alpha · Active development · Not approved for sensitive data</em>
 </p>
 
-## What HyperScrub does
+> [!WARNING]
+> HyperScrub has not completed security or redaction-correctness testing. Use
+> synthetic documents during development. Do not rely on the current build to
+> protect genuine sensitive information.
 
-HyperScrub looks for sensitive text using YAML rules. Worker processes scan pages in parallel, then a single writer applies the redactions and saves a separate PDF.
+## Project status
+
+HyperScrub is an early development prototype. The current source code provides:
+
+- a Python command-line interface;
+- validated YAML pattern and keyword rules;
+- native text extraction for searchable PDFs; and
+- sequential page-content redaction with PyMuPDF.
+
+The following capabilities are planned and are not implemented yet:
+
+- multicore page analysis;
+- OCR for scanned and image-only pages;
+- batch directory processing;
+- metadata, attachment, and form-data sanitization; and
+- portable executables with bundled dependencies.
+
+## Current functionality
+
+HyperScrub looks for sensitive text in searchable PDFs using YAML rules. The
+current engine analyzes pages sequentially, applies matching redactions, and
+saves a separate output PDF.
 
 - **Structural redaction** removes matched content from PDF pages.
-- **Native text and local OCR** cover searchable pages and image-only scans.
+- **Native text extraction** processes PDFs that already contain searchable text.
 - **Configurable rules** match patterns such as Social Security numbers and keywords such as Splunk, AWS, and Okta.
 
-## Quick start
+## Planned command interface
 
-Once published, download the archive for your platform from **Releases** and extract it. The planned bundle includes Python, the required libraries, and English OCR data.
+These commands document the intended release interface. No stable release has
+been published yet.
 
 ### Single document
 
@@ -64,26 +89,34 @@ keywords:
 <details>
 <summary>Architecture and trust model</summary>
 
-HyperScrub is designed to process documents locally. Text extraction, OCR, and matching run on the host. The engine applies redactions to the matched page content and writes a separate PDF with visible redaction marks.
+HyperScrub is designed to process documents locally. The current engine extracts
+native text, matches configured rules, applies redactions, and writes a separate
+PDF with visible redaction marks.
 
-1. **Inspect each page.** Distribute pages to worker processes. Each worker checks for a native text layer and selects native extraction or local OCR.
-2. **Reconstruct and match lines.** Collect words and their bounding boxes, group tokens by line, and match the configured patterns and keywords against reconstructed text. Map each match back to page coordinates. OCR coordinates are converted from image pixels to PDF page coordinates.
-3. **Collect redaction coordinates.** Workers return page numbers and match rectangles to the controller. The controller owns the output document.
-4. **Apply redactions and save.** The controller applies the collected redactions with PyMuPDF and saves a new file. One writer coordinates updates to the PDF objects and cross-reference table. The prototype saves with garbage collection and stream compression.
+1. **Inspect each page.** Extract words and coordinates from the native text layer.
+2. **Reconstruct and match lines.** Group words by line, evaluate configured patterns and keywords, and map matches back to page coordinates.
+3. **Apply redactions.** Add redaction annotations and remove matched page content with PyMuPDF.
+4. **Save a separate file.** Write the result with PDF garbage collection and stream compression.
+
+The planned parallel architecture will move page analysis into worker processes
+while retaining one coordinated writer for the output document.
 
 </details>
 
 <details>
 <summary>Verification and operational constraints</summary>
 
-Use test PDFs containing known sensitive values. Re-extract text from the redacted output, inspect the relevant PDF content, and render scanned pages to verify that targeted text is gone from the image regions. A raw byte search can serve as a supplementary check, since compressed or encoded streams may hide matches from it.
+Use searchable test PDFs containing known synthetic values. Re-extract text from
+the redacted output and inspect the rendered pages to verify the result. A raw
+byte search can serve as a supplementary check, since compressed or encoded
+streams may hide matches from it.
 
 The original design calls for separately checking document metadata, embedded attachments, and form data. Page-content redaction and sanitization of those additional surfaces require separate implementation and verification.
 
 ### Operational constraints
 
-- **Serial output.** Page analysis can run on multiple cores, while the write pass remains serial. On large documents, measure analysis and output writing separately to see which phase limits speedup.
-- **OCR coverage and quality.** Low resolution, skew, and character substitutions can break pattern matching. A selectable header can also cause the current page-level fallback to skip an embedded scan. The original design proposes a `--force-ocr` option for cases requiring another pass. Review low-quality scans and mixed-content pages before sharing.
+- **Sequential processing.** The current implementation does not use multiple cores. Its runtime will serve as the correctness and performance baseline for later parallel development.
+- **No OCR.** Image-only scans and text embedded in images are not processed by the current implementation.
 - **Fragmented native text.** PDF generators can split a visually continuous value across tokens or insert invisible characters. The design calls for normalizing layout text before matching and testing that reconstructed matches still map to the correct coordinates.
 - **Over-redaction.** Short keywords can match inside unrelated words. The design calls for whole-word matching by default and explicit rules for broader matching. Test for both missed matches and unwanted redactions.
 
@@ -102,8 +135,8 @@ hyperscrub/
 │   └── hyperscrub/
 │       ├── __init__.py
 │       ├── cli.py
-│       ├── engine.py
-│       └── utils.py
+│       ├── config.py
+│       └── engine.py
 ├── presets/
 │   ├── devops_audit.yaml
 │   ├── gdpr.yaml
@@ -127,3 +160,4 @@ The original layout includes automated tests and security scanning in GitHub Act
 Report vulnerabilities privately through the repository’s security reporting channel once configured. Include reproduction steps and a synthetic or sanitized PDF that demonstrates the issue. Keep sensitive source documents out of public issues.
 
 </details>
+
