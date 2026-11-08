@@ -18,7 +18,7 @@ def _validate_patterns(value: Any) -> dict[str, str]:
         return {}
 
     if not isinstance(value, dict):
-        raise ValueError("'patterns' must be a YAML mapping.")
+        raise TypeError("'patterns' must be a YAML mapping.")
 
     patterns: dict[str, str] = {}
 
@@ -41,7 +41,7 @@ def _validate_keywords(value: Any) -> tuple[str, ...]:
         return ()
 
     if not isinstance(value, list):
-        raise ValueError("'keywords' must be a YAML list.")
+        raise TypeError("'keywords' must be a YAML list.")
 
     keywords: list[str] = []
 
@@ -71,7 +71,7 @@ def load_config(config_path: Path) -> RuleConfig:
         raise ValueError(f"Invalid YAML configuration: {error}") from error
 
     if not isinstance(data, dict):
-        raise ValueError("Configuration root must be a YAML mapping.")
+        raise TypeError("Configuration root must be a YAML mapping.")
 
     unknown_fields = set(data) - {"patterns", "keywords"}
     if unknown_fields:
