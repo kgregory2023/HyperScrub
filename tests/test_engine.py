@@ -89,3 +89,78 @@ def test_rejects_invalid_regex(tmp_path: Path) -> None:
             patterns={"broken": r"["},
             keywords=(),
         )
+
+def test_redacts_across_multiple_pages(tmp_path: Path) -> None:
+    input_path = tmp_path / "multipage.pdf"
+    output_path = tmp_path / "redacted.pdf"
+
+    with fitz.open() as document:
+        first_page = document.new_page()
+        first_page.insert_text(
+            (72, 72),
+            "Synthetic SSN: 123-45-6789",
+        )
+
+        second_page = document.new_page()
+        second_page.insert_text(
+            (72, 72),
+            "Classification: Confidential",
+        )
+
+        third_page = document.new_page()
+        third_page.insert_text(
+            (72, 72),
+            "This page contains no sensitive information.",
+        )
+
+        document.save(input_path)
+
+    result = redact_pdf(
+        input_path=input_path,
+        output_path=output_path,
+        patterns={
+            "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+        },
+        keywords=("Confidential",),
+    )
+
+    output_text = extract_text(output_path)
+
+    assert "123-45-6789" not in output_text
+    assert "Confidential" not in output_text
+    assert "This page contains no sensitive information." in output_text
+    assert result.pages_processed == 3
+    assert result.matches_redacted == 2
+
+
+def test_keyword_does_not_match_partial_words(
+    tmp_path: Path,
+) -> None:
+    input_path = tmp_path / "keywords.pdf"
+    output_path = tmp_path / "redacted.pdf"
+
+    with fitz.open() as document:
+        page = document.new_page()
+        page.insert_text(
+            (72, 72),
+            "git GitHub digital",
+        )
+        document.save(input_path)
+
+    result = redact_pdf(
+        input_path=input_path,
+        output_path=output_path,
+        patterns={},
+        keywords=("git",),
+    )
+
+    output_text = extract_text(output_path)
+    remaining_words = [
+        word.lower()
+        for word in output_text.split()
+    ]
+
+    assert "git" not in remaining_words
+    assert "GitHub" in output_text
+    assert "digital" in output_text
+    assert result.matches_redacted == 1
