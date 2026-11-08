@@ -46,7 +46,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             patterns=rules.patterns,
             keywords=rules.keywords,
         )
-    except (FileNotFoundError, OSError, ValueError) as error:
+    except (FileNotFoundError, OSError, TypeError, ValueError) as error:
         parser.error(str(error))
 
     print(
