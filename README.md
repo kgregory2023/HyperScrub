@@ -163,7 +163,7 @@ The original layout includes automated tests and security scanning in GitHub Act
 <details>
 <summary>Security policy</summary>
 
-Report vulnerabilities privately through the repository’s security reporting channel once configured. Include reproduction steps and a synthetic or sanitized PDF that demonstrates the issue. Keep sensitive source documents out of public issues.
+Report vulnerabilities privately through the repository’s security reporting channel. Include reproduction steps and a synthetic or sanitized PDF that demonstrates the issue. Keep sensitive source documents out of public issues.
 
 </details>
 
