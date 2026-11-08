@@ -2,14 +2,14 @@
 
 from pathlib import Path
 
-import fitz
+import pymupdf
 import pytest
 
 from hyperscrub.engine import redact_pdf
 
 
 def create_test_pdf(pdf_path: Path) -> None:
-    with fitz.open() as document:
+    with pymupdf.open() as document:
         page = document.new_page()
         page.insert_text(
             (72, 72),
@@ -27,7 +27,7 @@ def create_test_pdf(pdf_path: Path) -> None:
 
 
 def extract_text(pdf_path: Path) -> str:
-    with fitz.open(pdf_path) as document:
+    with pymupdf.open(pdf_path) as document:
         return "\n".join(page.get_text() for page in document)
 
 
@@ -94,7 +94,7 @@ def test_redacts_across_multiple_pages(tmp_path: Path) -> None:
     input_path = tmp_path / "multipage.pdf"
     output_path = tmp_path / "redacted.pdf"
 
-    with fitz.open() as document:
+    with pymupdf.open() as document:
         first_page = document.new_page()
         first_page.insert_text(
             (72, 72),
@@ -139,7 +139,7 @@ def test_keyword_does_not_match_partial_words(
     input_path = tmp_path / "keywords.pdf"
     output_path = tmp_path / "redacted.pdf"
 
-    with fitz.open() as document:
+    with pymupdf.open() as document:
         page = document.new_page()
         page.insert_text(
             (72, 72),

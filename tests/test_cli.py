@@ -2,13 +2,13 @@
 
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 from hyperscrub.cli import main
 
 
 def create_test_pdf(pdf_path: Path) -> None:
-    with fitz.open() as document:
+    with pymupdf.open() as document:
         page = document.new_page()
         page.insert_text(
             (72, 72),
@@ -18,7 +18,7 @@ def create_test_pdf(pdf_path: Path) -> None:
 
 
 def extract_text(pdf_path: Path) -> str:
-    with fitz.open(pdf_path) as document:
+    with pymupdf.open(pdf_path) as document:
         return "\n".join(page.get_text() for page in document)
 
 

@@ -8,7 +8,7 @@ import tempfile
 import time
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 from hyperscrub.engine import redact_pdf
 
@@ -17,7 +17,7 @@ def create_synthetic_pdf(
     pdf_path: Path,
     page_count: int,
 ) -> None:
-    with fitz.open() as document:
+    with pymupdf.open() as document:
         for page_number in range(page_count):
             page = document.new_page()
             page.insert_text(

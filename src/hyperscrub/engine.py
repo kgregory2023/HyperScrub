@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 
 @dataclass(frozen=True)
@@ -38,9 +38,9 @@ def _compile_rules(
 
 
 def _find_page_matches(
-    page: fitz.Page,
+    page: pymupdf.Page,
     rules: Sequence[re.Pattern[str]],
-) -> list[fitz.Rect]:
+) -> list[pymupdf.Rect]:
     lines: dict[tuple[int, int], list[tuple]] = defaultdict(list)
 
     for word in page.get_text("words", sort=True):
@@ -48,12 +48,12 @@ def _find_page_matches(
         line_number = int(word[6])
         lines[(block_number, line_number)].append(word)
 
-    matched_rectangles: list[fitz.Rect] = []
+    matched_rectangles: list[pymupdf.Rect] = []
     seen_rectangles: set[tuple[float, float, float, float]] = set()
 
     for words in lines.values():
         line_text = " ".join(str(word[4]) for word in words)
-        word_ranges: list[tuple[int, int, fitz.Rect]] = []
+        word_ranges: list[tuple[int, int, pymupdf.Rect]] = []
         character_index = 0
 
         for word in words:
@@ -65,7 +65,7 @@ def _find_page_matches(
                 (
                     start,
                     end,
-                    fitz.Rect(word[0], word[1], word[2], word[3]),
+                    pymupdf.Rect(word[0], word[1], word[2], word[3]),
                 )
             )
             character_index = end + 1
@@ -81,7 +81,7 @@ def _find_page_matches(
                 if not rectangles:
                     continue
 
-                combined = fitz.Rect(rectangles[0])
+                combined = pymupdf.Rect(rectangles[0])
                 for rectangle in rectangles[1:]:
                     combined |= rectangle
 
@@ -118,7 +118,7 @@ def redact_pdf(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     matches_redacted = 0
 
-    with fitz.open(input_path) as document:
+    with pymupdf.open(input_path) as document:
         for page in document:
             rectangles = _find_page_matches(page, rules)
 
