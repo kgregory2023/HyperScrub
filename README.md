@@ -3,6 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/kgregory2023/HyperScrub/actions/workflows/tests.yml">
+    <img src="https://github.com/kgregory2023/HyperScrub/actions/workflows/tests.yml/badge.svg" alt="Tests">
+  </a>
+</p>
+
+<p align="center">
   <strong>Configurable redaction for searchable PDF documents.</strong><br>
   <em>Pre-alpha · Active development · Not approved for sensitive data</em>
 </p>
